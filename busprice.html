@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Ticket Listings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #e63946;
+            margin-bottom: 20px;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .filter-container select,
+        .filter-container input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .listing {
+            border: 1px solid #e63946;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            transition: box-shadow 0.3s;
+        }
+
+        .listing:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .time {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1d3557;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #e63946;
+        }
+
+        .amenities {
+            margin: 10px 0;
+        }
+
+        .amenities i {
+            margin-right: 10px;
+            color: #e63946;
+        }
+
+        .stars {
+            color: #ffd700; /* Gold color for stars */
+        }
+
+        .button {
+            background-color: #e63946;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #d62839;
+        }
+
+        .seats {
+            color: #555;
+            font-size: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body ng-app="busApp" ng-controller="busController">
+    <div class="container">
+        <h1>Bus Tickets</h1>
+        <div class="filter-container">
+            <input type="text" ng-model="searchQuery" placeholder="Search buses..." />
+            <select ng-model="selectedSort" ng-change="sortBuses()">
+                <option value="">Sort by</option>
+                <option value="price">Price</option>
+                <option value="departureTime">Departure Time</option>
+            </select>
+            <select ng-model="selectedRating" ng-change="filterBuses()">
+                <option value="">Filter by Rating</option>
+                <option value="1">1 Star</option>
+                <option value="2">2 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="5">5 Stars</option>
+            </select>
+        </div>
+        <div class="listing" ng-repeat="bus in filteredBuses = (buses | filter:searchQuery | filter:filterByRating | orderBy:selectedSort)">
+            <h2>{{bus.operator}}</h2>
+            <p>{{bus.busType}}</p>
+            <div class="details">
+                <div>
+                    <div class="time">{{bus.departureTime}} - {{bus.arrivalTime}}</div>
+                    <div>{{bus.departureLocation}} to {{bus.arrivalLocation}}</div>
+                </div>
+                <div class="price">{{bus.price | currency:"INR "}}</div>
+            </div>
+            <div class="stars">
+                <span ng-repeat="star in [] | limitTo: bus.rating" class="fas fa-star"></span>
+                <span ng-repeat="star in [] | limitTo: 5 - bus.rating" class="far fa-star"></span>
+            </div>
+            <div class="amenities">
+                <i class="fas fa-wifi" ng-if="bus.amenities.wifi" title="Wifi"></i>
+                <i class="fas fa-tv" ng-if="bus.amenities.tv" title="TV"></i>
+                <i class="fas fa-water" ng-if="bus.amenities.water" title="Water"></i>
+                <i class="fas fa-charging-station" ng-if="bus.amenities.charging" title="Charging"></i>
+            </div>
+            <div class="seats">{{bus.availableSeats}} Seats available</div>
+            <a href="seat.html"><button class="button" ng-click="viewSeats(bus)">View Seats</button></a>
+            
+        </div>
+
+        
+        <div class="modal" ng-show="isModalOpen">
+            <div class="modal-content">
+                <span class="close" ng-click="closeModal()">&times;</span>
+                <h2>{{selectedBus.operator}} - Details</h2>
+                <p><strong>Bus Type:</strong> {{selectedBus.busType}}</p>
+                <p><strong>Departure:</strong> {{selectedBus.departureTime}} from {{selectedBus.departureLocation}}</p>
+                <p><strong>Arrival:</strong> {{selectedBus.arrivalTime}} at {{selectedBus.arrivalLocation}}</p>
+                <p><strong>Price:</strong> {{selectedBus.price | currency:"INR "}}</p>
+                <p><strong>Amenities:</strong></p>
+                <ul>
+                    <li ng-if="selectedBus.amenities.wifi">Wifi</li>
+                    <li ng-if="selectedBus.amenities.tv">TV</li>
+                    <li ng-if="selectedBus.amenities.water">Water</li>
+                    <li ng-if="selectedBus.amenities.charging">Charging</li>
+                </ul>
+                <p><strong>Available Seats:</strong> {{selectedBus.availableSeats}}</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        angular.module('busApp', []).controller('busController', function ($scope) {
+            $scope.buses = [
+                {
+                    operator: 'Chouhan Travels',
+                    busType: 'Bharat Benz NON A/C sleeper (2+1)',
+                    departureTime: '04:25',
+                    arrivalTime: '08:15',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Jaipur',
+                    price: 800,
+                    rating: 4,
+                    amenities: { wifi: true, tv: false, water: true, charging: true },
+                    availableSeats: 10,
+                },
+                {
+                    operator: 'Speedy Bus Services',
+                    busType: 'Volvo A/C sleeper (2+1)',
+                    departureTime: '05:30',
+                    arrivalTime: '09:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Agra',
+                    price: 900,
+                    rating: 5,
+                    amenities: { wifi: true, tv: true, water: true, charging: false },
+                    availableSeats: 5,
+                },
+                {
+                    operator: 'City Express',
+                    busType: 'Sleeper Coach (2+1)',
+                    departureTime: '06:00',
+                    arrivalTime: '10:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Varanasi',
+                    price: 750,
+                    rating: 3,
+                    amenities: { wifi: false, tv: true, water: true, charging: true },
+                    availableSeats: 8,
+                },
+                {
+                    operator: 'Royal Travels',
+                    busType: 'Luxury A/C Sleeper',
+                    departureTime: '07:15',
+                    arrivalTime: '11:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Lucknow',
+                    price: 1200,
+                    rating: 4,
+                    amenities: { wifi: true, tv: true, water: true, charging: true },
+                    availableSeats: 12,
+                },
+                {
+                    operator: 'Himalayan Tours',
+                    busType: 'Deluxe NON A/C Coach',
+                    departureTime: '08:00',
+                    arrivalTime: '12:30',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Shimla',
+                    price: 950,
+                    rating: 2,
+                    amenities: { wifi: false, tv: false, water: true, charging: false },
+                    availableSeats: 15,
+                },
+                {
+                    operator: 'Golden Star Bus Service',
+                    busType: 'Sleeper Coach (2+1)',
+                    departureTime: '09:00',
+                    arrivalTime: '13:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Dehradun',
+                    price: 850,
+                    rating: 5,
+                    amenities: { wifi: true, tv: true, water: false, charging: true },
+                    availableSeats: 7,
+                },
+                {
+                    operator: 'Swift Travel',
+                    busType: 'A/C Semi-Sleeper',
+                    departureTime: '10:30',
+                    arrivalTime: '14:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Jaipur',
+                    price: 900,
+                    rating: 4,
+                    amenities: { wifi: true, tv: false, water: true, charging: false },
+                    availableSeats: 6,
+                },
+                {
+                    operator: 'Express Lines',
+                    busType: 'Super Deluxe A/C Coach',
+                    departureTime: '11:00',
+                    arrivalTime: '15:30',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Bhopal',
+                    price: 1100,
+                    rating: 5,
+                    amenities: { wifi: true, tv: true, water: true, charging: true },
+                    availableSeats: 9,
+                },
+                {
+                    operator: 'Hill Station Travels',
+                    busType: 'Luxury A/C Sleeper (2+1)',
+                    departureTime: '12:15',
+                    arrivalTime: '16:45',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Manali',
+                    price: 1300,
+                    rating: 4,
+                    amenities: { wifi: true, tv: false, water: true, charging: true },
+                    availableSeats: 4,
+                },
+                {
+                    operator: 'Travel Express',
+                    busType: 'Bharat Benz A/C Semi-Sleeper',
+                    departureTime: '13:30',
+                    arrivalTime: '17:00',
+                    departureLocation: 'Delhi',
+                    arrivalLocation: 'Chandigarh',
+                    price: 750,
+                    rating: 3,
+                    amenities: { wifi: true, tv: true, water: true, charging: false },
+                    availableSeats: 8,
+                },
+            ];
+
+            $scope.searchQuery = '';
+            $scope.selectedSort = '';
+            $scope.selectedRating = '';
+
+            $scope.filterByRating = function (bus) {
+                if (!$scope.selectedRating) return true;
+                return bus.rating === parseInt($scope.selectedRating);
+            };
+
+            $scope.sortBuses = function () {
+                if ($scope.selectedSort === 'price') {
+                    return 'price';
+                } else if ($scope.selectedSort === 'departureTime') {
+                    return 'departureTime';
+                }
+            };
+
+            $scope.viewSeats = function (bus) {
+                alert('Viewing seats for ' + bus.operator);
+            };
+
+            $scope.isModalOpen = false;
+            $scope.selectedBus = {};
+
+            $scope.openModal = function (bus) {
+                $scope.selectedBus = bus;
+                $scope.isModalOpen = true;
+            };
+
+            $scope.closeModal = function () {
+                $scope.isModalOpen = false;
+                $scope.selectedBus = {};
+            };
+        });
+    </script>
+</body>
+
+</html>

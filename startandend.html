@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Booking</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bus Booking</h1>
+        <div class="form-group">
+            <label for="boarding-point">Boarding Point</label>
+            <input type="text" id="boarding-point" placeholder="Enter Boarding Point" list="boarding-options">
+            <datalist id="boarding-options">
+                <option value="City Center">
+                <option value="Airport">
+                <option value="Train Station">
+                <option value="Downtown">
+                <option value="University">
+                <option value="Bus Terminal">
+            </datalist>
+        </div>
+        <div class="form-group" >
+            <label for="dropping-point">Dropping Point</label>
+            <input type="text" id="dropping-point" placeholder="Enter Dropping Point" list="dropping-options">
+            <datalist id="dropping-options">
+                <option value="City Center">
+                <option value="Airport">
+                <option value="Train Station">
+                <option value="Downtown">
+                <option value="Shopping Mall">
+                <option value="Hotel">
+            </datalist>
+        </div>
+        <a href="busprice.html"><button type="submit" >Search Buses</button></a></div>
+    </div>
+</body>
+</html>

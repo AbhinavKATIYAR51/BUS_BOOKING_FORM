@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Bus Tracking with Route and Distance</title>
+  <!-- Leaflet CSS for Map Styling -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      background-color: #0044cc;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    #map {
+      height: 80%;
+      width: 100%;
+    }
+
+    .info-box {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      box-shadow: 0px 0px 5px 0px #333;
+      z-index: 1000;
+    }
+  </style>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Leaflet Routing Machine -->
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+</head>
+<body>
+
+<header>
+  Real-Time Bus Tracking with Route and Distance
+</header>
+
+<div id="map"></div>
+
+<div class="info-box">
+  <h4>Bus Information</h4>
+  <p id="bus-info">Fetching bus data...</p>
+</div>
+
+<script>
+  var map;
+  var busMarker;
+  var userMarker;
+  var userLat, userLng;
+  var routeControl;  // For managing the route on the map
+  var bounds = new L.LatLngBounds(); // To automatically zoom and fit both markers in view
+
+  // Function to initialize the map at the user's current location
+  function initializeMap(latitude, longitude) {
+    userLat = latitude;
+    userLng = longitude;
+
+    // Set the initial view to the user's location
+    map = L.map('map').setView([latitude, longitude], 13);
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Add a marker for the user's current location
+    userMarker = L.marker([latitude, longitude], { color: 'blue' }).addTo(map).bindPopup("You are here").openPopup();
+
+    // Extend the bounds to include the user's location
+    bounds.extend([latitude, longitude]);
+
+    // Create a marker for the bus (position will update based on API)
+    busMarker = L.marker([latitude, longitude]).addTo(map).bindPopup("Raj Ratan Tours and Travels is here").openPopup();
+  }
+
+  // Function to update bus position with a random location in Indore
+  function updateBusPosition() {
+    // Random bus location in Indore (latitude and longitude)
+    var busLat = 22.719 + Math.random() * 0.05; // Randomize latitude around Indore
+    var busLng = 75.857 + Math.random() * 0.05; // Randomize longitude around Indore
+
+    // Update bus marker position on the map
+    busMarker.setLatLng([busLat, busLng]).bindPopup(`Raj Ratan Tours and Travels is now at [${busLat}, ${busLng}]`).openPopup();
+
+    // Calculate the distance between the user's location and the bus
+    var distance = calculateDistance(userLat, userLng, busLat, busLng);
+
+    // Update bus information in the info box with distance
+    document.getElementById('bus-info').innerHTML = `
+      Raj Ratan Tours and Travels Location: Latitude ${busLat.toFixed(4)}, Longitude ${busLng.toFixed(4)}<br>
+      Distance from you: ${distance.toFixed(2)} km
+    `;
+
+    // Extend bounds to include bus location
+    bounds.extend([busLat, busLng]);
+
+    // Adjust the map view to fit both the user and bus locations
+    map.fitBounds(bounds);
+
+    // Add or update the route on the map
+    if (routeControl) {
+      routeControl.setWaypoints([L.latLng(userLat, userLng), L.latLng(busLat, busLng)]);
+    } else {
+      routeControl = L.Routing.control({
+        waypoints: [
+          L.latLng(userLat, userLng),
+          L.latLng(busLat, busLng)
+        ],
+        createMarker: function() { return null; }, // Disable default markers for the route
+        routeWhileDragging: true
+      }).addTo(map);
+    }
+  }
+
+  // Function to calculate the distance between two coordinates using Haversine formula
+  function calculateDistance(lat1, lng1, lat2, lng2) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    var dLng = deg2rad(lng2 - lng1); 
+    var a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2); 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var distance = R * c;  // Distance in km
+    return distance;
+  }
+
+  function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+  }
+
+  // Function to get the user's current location using the Geolocation API
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          userLat = position.coords.latitude;
+          userLng = position.coords.longitude;
+
+          // Initialize the map at the user's current location
+          initializeMap(userLat, userLng);
+
+          // Update bus position once the map is set up
+          updateBusPosition();
+
+          // Set up a timer to refresh bus position every 10 seconds
+          setInterval(updateBusPosition, 10000);
+        },
+        error => {
+          console.error("Error getting location:", error);
+          alert("Unable to retrieve your location. Please enable location services and refresh the page.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  }
+
+  // Get user's location and initialize the map
+  getUserLocation();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="busBookingApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Booking Form</title>
+    <link rel="stylesheet" href="help.css">
+</head>
+<body ng-controller="BookingController">
+    <div class="container">
+        <h2>Bus Booking Form</h2>
+        <form ng-submit="submitBooking()" action="busprice.html">
+            <div class="form-group">
+                <label for="departure">Departure Location:</label>
+                <select id="departure" ng-model="booking.departure" required>
+                    <option value="">Select Departure</option>
+                    <option ng-repeat="location in locations">{{ location }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="destination">Destination Location:</label>
+                <select id="destination" ng-model="booking.destination" required>
+                    <option value="">Select Destination</option>
+                    <option ng-repeat="location in locations">{{ location }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date of Travel:</label>
+                <input type="date" id="date" ng-model="booking.date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="passengerName">Passenger Name:</label>
+                <input type="text" id="passengerName" ng-model="booking.passengerName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="time">Time of Travel:</label>
+                <input type="time" id="time" ng-model="booking.time" required>
+            </div>
+
+            <div class="form-group">
+                <label for="seats">Number of Seats:</label>
+                <input type="number" id="seats" ng-model="booking.seats" required>
+            </div>
+
+            <button type="submit">Book Bus</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script>
+        angular.module('busBookingApp', [])
+            .controller('BookingController', function ($scope, $http) {
+                $scope.locations = ['Mumbai', 'Pune', 'Indore', 'Delhi', 'Dehradun', 'Varanasi', 'Jaipur', 'Shimla', 'Bangalore', 'Chennai', 'Hyderabad', 'Ahmedabad', 'Kolkata', 'Lucknow', 'Chandigarh', 'Surat', 'Nagpur', 'Kanpur', 'Bhopal', 'Visakhapatnam', 'Patna', 'Ludhiana', 'Vadodara', 'Agra', 'Coimbatore', 'Nashik', 'Rajkot', 'Meerut', 'Ranchi', 'Guwahati', 'Jodhpur', 'Madurai', 'Raipur', 'Mysore', 'Amritsar'];
+                $scope.booking = {};
+
+                $scope.submitBooking = function () {
+                    $http.post('http://localhost:3002/book-bus', $scope.booking)
+                        .then(function (response) {
+                            console.log('Booking successful:', response);
+                            alert('Booking successful!');
+                        })
+                        .catch(function (error) {
+                            console.error('Error booking bus:', error);
+                            alert('Error booking bus: ' + error.data.error);
+                        });
+                };
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="authApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 300px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #f33900;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: #ff3030;
+        }
+        .toggle-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .toggle-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-controller="authController">
+    
+    <div class="container" id="loginForm" ng-show="showLoginForm" >
+        <h2>Login</h2>
+        <form name="loginForm" ng-submit="login(loginForm)" novalidate action="buses.html" action="http://localhost:3000/login" method="POST">
+            <div class="input-group" ng-class="{ 'has-error': loginForm.loginEmail.$touched && loginForm.loginEmail.$invalid }">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" name="loginEmail" ng-model="user.loginEmail" placeholder="Enter your email" required>
+                <span class="error" ng-show="loginForm.loginEmail.$touched && loginForm.loginEmail.$error.required">Email is required.</span>
+                <span class="error" ng-show="loginForm.loginEmail.$touched && loginForm.loginEmail.$error.email">Invalid email address.</span>
+            </div>
+            <div class="input-group" ng-class="{ 'has-error': loginForm.loginPassword.$touched && loginForm.loginPassword.$invalid }">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="loginPassword" ng-model="user.loginPassword" placeholder="Enter your password" required>
+                <span class="error" ng-show="loginForm.loginPassword.$touched && loginForm.loginPassword.$error.required">Password is required.</span>
+            </div>
+            <button class="btn" type="submit" ng-disabled="loginForm.$invalid" ><a href="buses.html">Login</button></a>
+        </form>
+        <div class="toggle-link">
+            <p>Don't have an account? <a href="#" ng-click="toggleForms()">Sign Up</a></p>
+        </div>
+    </div>
+
+    
+    <div class="container" id="signupForm" ng-show="!showLoginForm">
+        <h2>Sign Up</h2>
+        <form name="signupForm" ng-submit="signup(signupForm)" novalidate action="buses.html" action="http://localhost:3000/signup" method="POST">
+            <div class="input-group" ng-class="{ 'has-error': signupForm.signupEmail.$touched && signupForm.signupEmail.$invalid }">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" name="signupEmail" ng-model="user.signupEmail" placeholder="Enter your email" required>
+                <span class="error" ng-show="signupForm.signupEmail.$touched && signupForm.signupEmail.$error.required">Email is required.</span>
+                <span class="error" ng-show="signupForm.signupEmail.$touched && signupForm.signupEmail.$error.email">Invalid email address.</span>
+            </div>
+            <div class="input-group" ng-class="{ 'has-error': signupForm.signupPassword.$touched && signupForm.signupPassword.$invalid }">
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" name="signupPassword" ng-model="user.signupPassword" placeholder="Enter your password" required>
+                <span class="error" ng-show="signupForm.signupPassword.$touched && signupForm.signupPassword.$error.required">Password is required.</span>
+            </div>
+            <div class="input-group" ng-class="{ 'has-error': signupForm.confirmPassword.$touched && signupForm.confirmPassword.$invalid }">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" ng-model="user.confirmPassword" placeholder="Confirm your password" required>
+                <span class="error" ng-show="signupForm.confirmPassword.$touched && signupForm.confirmPassword.$error.required">Confirmation is required.</span>
+                <span class="error" ng-show="signupForm.confirmPassword.$touched && user.signupPassword !== user.confirmPassword">Passwords do not match.</span>
+            </div>
+            <button class="btn" type="submit" ng-disabled="signupForm.$invalid"><a href="buses.html">Sign Up</button></a>
+        <div class="toggle-link">
+            <p>Already have an account? <a href="" ng-click="toggleForms()">Login</a></p>
+        </div>
+    </div>
+
+    <script>
+       
+        var app = angular.module('authApp', []);
+
+        app.controller('authController', function($scope) {
+            
+            $scope.showLoginForm = true;
+
+           
+            $scope.toggleForms = function() {
+                $scope.showLoginForm = !$scope.showLoginForm;
+            };
+
+            
+            $scope.login = function(form) {
+                if (form.$valid) {
+                    alert('Logged in successfully!');
+                }
+            };
+
+            
+            $scope.signup = function(form) {
+                if (form.$valid) {
+                    if ($scope.user.signupPassword === $scope.user.confirmPassword) {
+                        alert('Signed up successfully!');
+                    } else {
+                        alert('Passwords do not match!');
+                    }
+                }
+            };
+        });
+        // Updated form submission for login
+$scope.login = function(form) {
+    if (form.$valid) {
+        fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                loginEmail: $scope.user.loginEmail,
+                loginPassword: $scope.user.loginPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            if (data.message === 'Login successful!') {
+                window.location.href = "buses.html";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+};
+
+// Updated form submission for signup
+$scope.signup = function(form) {
+    if (form.$valid) {
+        if ($scope.user.signupPassword === $scope.user.confirmPassword) {
+            fetch('http://localhost:3000/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    signupEmail: $scope.user.signupEmail,
+                    signupPassword: $scope.user.signupPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.message === 'User registered successfully!') {
+                    $scope.toggleForms();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            alert('Passwords do not match!');
+        }
+    }
+};
+    </script>
+</body>
+</html>
